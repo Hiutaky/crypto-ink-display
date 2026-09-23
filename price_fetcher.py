@@ -72,19 +72,19 @@ class PriceFetcher:
         return elapsed >= interval_seconds
 
     def fetch_market_chart(self, crypto_id: str, minutes: int = 15) -> List[Tuple[float, float]]:
-        """Fetch market chart data for a cryptocurrency.
+        """Fetch market chart data for a cryptocurrency using sparkline.
 
         Args:
             crypto_id: CoinGecko ID of the cryptocurrency
-            minutes: Number of minutes of historical data to fetch
+            minutes: Number of minutes of historical data to fetch (ignored, uses 7d sparkline)
 
         Returns:
             List of (timestamp, price) tuples.
         """
-        url = f"{self.BASE_URL}/coins/{crypto_id}/market_chart"
+        url = f"{self.BASE_URL}/coins/{crypto_id}"
         params = {
-            "vs_currency": self.vs_currency,
-            "interval": "15m",  # CoinGecko's finest granularity for free tier
+            "vs_currencies": self.vs_currency,
+            "sparkline": "true",
         }
 
         try:
@@ -92,21 +92,20 @@ class PriceFetcher:
             response.raise_for_status()
             data = response.json()
 
-            prices_data = data.get("prices", [])
-            if not prices_data:
+            sparkline_data = data.get("market_data", {}).get("sparkline_7d", {}).get("price", [])
+            if not sparkline_data:
                 logger.warning(f"No chart data for {crypto_id}")
                 return []
 
-            # Filter to last N minutes (each point is 15 min apart)
-            now = time.time() * 1000  # CoinGecko uses ms timestamps
-            cutoff = now - (minutes * 60 * 1000)
-            recent_data = [(ts, price) for ts, price in prices_data if ts >= cutoff]
+            # Convert to (timestamp, price) tuples with synthetic timestamps
+            now = time.time()
+            interval = 60 * 60 * 24 * 7 / len(sparkline_data)
+            result = []
+            for i, price in enumerate(sparkline_data):
+                ts = now - (len(sparkline_data) - i) * interval
+                result.append((ts, price))
 
-            # If we don't have enough points, return last few available
-            if len(recent_data) < 2:
-                recent_data = prices_data[-4:]
-
-            return recent_data
+            return result[-10:]  # Return last 10 points for the chart
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to fetch chart for {crypto_id}: {e}")

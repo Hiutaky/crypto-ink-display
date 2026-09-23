@@ -1,0 +1,17 @@
+[Unit]
+Description=Crypto Ink Display - Live crypto prices on e-ink display
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=alessandro
+WorkingDirectory=/home/alessandro/code/crypto-ink-display
+ExecStart=/usr/bin/python3 /home/alessandro/code/crypto-ink-display/main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
