@@ -1,7 +1,6 @@
 """Render mini line charts using Pillow."""
 
 from typing import List, Optional, Tuple
-import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 
