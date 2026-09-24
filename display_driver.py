@@ -1,6 +1,8 @@
-"""Display driver for Waveshare 2.13" e-ink display (SPI).
+"""Display driver for Waveshare 2.13" V2 e-ink display (SPI).
 
-Uses the epd-library package: https://pypi.org/project/epd-library/
+Uses waveshare_epd library from: https://github.com/waveshareteam/e-Paper
+Install on Pi: git clone https://github.com/waveshareteam/e-Paper.git
+Then copy lib/python to project or add to PYTHONPATH.
 """
 
 import time
@@ -11,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class EPDDisplay:
-    """Driver for Waveshare 2.9" e-ink display."""
+    """Driver for Waveshare 2.13" V2 e-ink display."""
 
     def __init__(self, width=250, height=128):
         self.width = width
@@ -19,25 +21,14 @@ class EPDDisplay:
         self._initialized = False
         self._epd = None
 
-        # Try to import the epd-library package (V2 variant)
+        # Import waveshare_epd library (installed from Waveshare GitHub repo)
         try:
-            from epdlibrary.epd2in13_v2 import EPD as WaveshareEPD
-            self._epd = WaveshareEPD()
-            logger.info("Using epd-library for 2.13\" V2 display")
-        except ImportError:
-            # Try standard version
-            try:
-                from epdlibrary.epd2in13 import EPD as WaveshareEPD
-                self._epd = WaveshareEPD()
-                logger.info("Using epd-library for 2.13\" display")
-            except ImportError:
-                # Try waveshare-epd as fallback
-                try:
-                    from waveshare_epd.epd2in13 import EPD as WaveshareEPD
-                    self._epd = WaveshareEPD()
-                    logger.info("Using waveshare-epd for 2.13\" display")
-                except ImportError:
-                    logger.warning("No e-paper library found, using mock display")
+            from waveshare_epd import epd2in13_V2
+            self._epd_module = epd2in13_V2
+            self._epd = epd2in13_V2.EPD()
+            logger.info("Using waveshare_epd for 2.13\" V2 display")
+        except ImportError as e:
+            logger.warning(f"waveshare_epd not found, using mock display ({e})")
 
     def init(self):
         """Initialize the display."""
@@ -46,7 +37,8 @@ class EPDDisplay:
 
         if self._epd is not None:
             try:
-                self._epd.init()
+                # V2 requires update mode parameter
+                self._epd.init(self._epd.FULL_UPDATE)
                 logger.info("Display initialized")
             except Exception as e:
                 logger.error(f"Failed to initialize display: {e}")
@@ -63,7 +55,7 @@ class EPDDisplay:
 
         if self._epd is not None:
             try:
-                self._epd.Clear()
+                self._epd.Clear(0xFF)
                 logger.debug("Display cleared")
             except Exception as e:
                 logger.error(f"Failed to clear display: {e}")
@@ -81,12 +73,12 @@ class EPDDisplay:
 
         if self._epd is not None:
             try:
-                # Convert to byte array for waveshare library
-                img_data = list(image.getdata())
-                # Waveshare expects 1 bit per pixel (0=black, 1=white)
-                binary_data = [0 if p < 128 else 1 for p in img_data]
-
-                self._epd.display(binary_data)
+                # Convert to 1-bit image for e-ink
+                img_1bit = image.convert('1')
+                
+                # Waveshare V2 uses getbuffer to convert PIL Image
+                buffer = self._epd.getbuffer(img_1bit)
+                self._epd.display(buffer)
                 logger.debug("Display updated")
             except Exception as e:
                 logger.error(f"Failed to update display: {e}")
