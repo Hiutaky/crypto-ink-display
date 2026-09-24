@@ -31,6 +31,6 @@ PRICE_REFRESH_INTERVAL = 60
 # Chart data points to show (last N minutes)
 CHART_MINUTES = 15
 
-# Display dimensions (Waveshare 2.9")
-DISPLAY_WIDTH = 296
+# Display dimensions (Waveshare 2.13")
+DISPLAY_WIDTH = 250
 DISPLAY_HEIGHT = 128

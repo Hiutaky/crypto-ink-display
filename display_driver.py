@@ -1,7 +1,6 @@
-"""Display driver for Waveshare 2.9" e-ink display (SPI).
+"""Display driver for Waveshare 2.13" e-ink display (SPI).
 
-This module provides a simple interface to drive the Waveshare 2.9" e-paper
-display connected via SPI on Raspberry Pi Zero.
+Uses the epd-library package: https://pypi.org/project/epd-library/
 """
 
 import time
@@ -14,19 +13,25 @@ logger = logging.getLogger(__name__)
 class EPDDisplay:
     """Driver for Waveshare 2.9" e-ink display."""
 
-    def __init__(self, width=296, height=128):
+    def __init__(self, width=250, height=128):
         self.width = width
         self.height = height
         self._initialized = False
+        self._epd = None
 
-        # Try to import the waveshare library
+        # Try to import the epd-library package
         try:
-            from waveshare_epd.epd2in9 import EPD as WaveshareEPD
+            from epdlibrary.epd2in13 import EPD as WaveshareEPD
             self._epd = WaveshareEPD()
-            logger.info("Using waveshare-epd library")
+            logger.info("Using epd-library for 2.13\" display")
         except ImportError:
-            logger.warning("waveshare-epd not installed, using mock display")
-            self._epd = None
+            # Try waveshare-epd as fallback
+            try:
+                from waveshare_epd.epd2in13 import EPD as WaveshareEPD
+                self._epd = WaveshareEPD()
+                logger.info("Using waveshare-epd for 2.13\" display")
+            except ImportError:
+                logger.warning("No e-paper library found, using mock display")
 
     def init(self):
         """Initialize the display."""
