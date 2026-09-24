@@ -19,19 +19,25 @@ class EPDDisplay:
         self._initialized = False
         self._epd = None
 
-        # Try to import the epd-library package
+        # Try to import the epd-library package (V2 variant)
         try:
-            from epdlibrary.epd2in13 import EPD as WaveshareEPD
+            from epdlibrary.epd2in13_v2 import EPD as WaveshareEPD
             self._epd = WaveshareEPD()
-            logger.info("Using epd-library for 2.13\" display")
+            logger.info("Using epd-library for 2.13\" V2 display")
         except ImportError:
-            # Try waveshare-epd as fallback
+            # Try standard version
             try:
-                from waveshare_epd.epd2in13 import EPD as WaveshareEPD
+                from epdlibrary.epd2in13 import EPD as WaveshareEPD
                 self._epd = WaveshareEPD()
-                logger.info("Using waveshare-epd for 2.13\" display")
+                logger.info("Using epd-library for 2.13\" display")
             except ImportError:
-                logger.warning("No e-paper library found, using mock display")
+                # Try waveshare-epd as fallback
+                try:
+                    from waveshare_epd.epd2in13 import EPD as WaveshareEPD
+                    self._epd = WaveshareEPD()
+                    logger.info("Using waveshare-epd for 2.13\" display")
+                except ImportError:
+                    logger.warning("No e-paper library found, using mock display")
 
     def init(self):
         """Initialize the display."""
