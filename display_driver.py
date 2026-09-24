@@ -74,13 +74,15 @@ class EPDDisplay:
                 
                 logger.info(f"Displaying image {img_1bit.size} mode={img_1bit.mode}")
                 
-                # Count black pixels to verify content
+                # Count black pixels to verify content is actually there
                 data = list(img_1bit.getdata())
                 black_pixels = sum(1 for p in data if p == 0)
-                logger.info(f"Black pixels: {black_pixels}/{len(data)}")
+                logger.info(f"Black (ink) pixels: {black_pixels} out of {len(data)}")
                 
                 buffer = self._epd.getbuffer(img_1bit)
+                logger.info(f"Buffer size: {len(buffer)} bytes")
                 self._epd.display(buffer)
+                time.sleep(0.5)  # Small delay after display
                 logger.debug("Display updated")
             except Exception as e:
                 logger.error(f"Failed to update display: {e}")
