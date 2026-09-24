@@ -139,7 +139,8 @@ def render_full_display(
     Returns:
         PIL Image ready to send to e-ink display.
     """
-    img = Image.new("L", (height, width), 255)
+    # Create image with white background for e-ink (255 = paper/white)
+    img = Image.new("L", (width, height), 255)
     draw = ImageDraw.Draw(img)
 
     # Top section: price info
@@ -167,17 +168,17 @@ def render_full_display(
     else:
         change_str = ""
 
-    # Draw symbol and price on top line
-    draw.text((5, 5), f"{symbol}", fill=255, font=font_large)
-    draw.text((60, 5), price_str, fill=255, font=font_large)
+    # Draw symbol and price on top line (black text on white bg)
+    draw.text((5, 5), f"{symbol}", fill=0, font=font_large)
+    draw.text((60, 5), price_str, fill=0, font=font_large)
 
     # Draw change on second line (right-aligned)
     if change_str:
         change_width = len(change_str) * 7
-        draw.text((width - change_width - 5, 5), change_str, fill=255, font=font_small)
+        draw.text((width - change_width - 5, 5), change_str, fill=0, font=font_small)
 
     # Separator line
-    draw.line([(0, 30), (width, 30)], fill=128, width=1)
+    draw.line([(0, 30), (width, 30)], fill=0, width=1)
 
     # Chart area: below separator
     chart_height = height - 40

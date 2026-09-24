@@ -63,29 +63,28 @@ class EPDDisplay:
             logger.debug("Mock display cleared")
 
     def update(self, image):
-        """Update the display with a PIL Image.
-
-        Args:
-            image: PIL Image in 'L' mode (grayscale) matching display dimensions.
-        """
+        """Update the display with a PIL Image."""
         if not self._initialized:
             self.init()
 
         if self._epd is not None:
             try:
-                # Waveshare 2.13" V2 expects height=128, width=250
+                # Convert to 1-bit for e-ink (0=black/ink, 255=white/paper)
                 img_1bit = image.convert('1')
                 
                 logger.info(f"Displaying image {img_1bit.size} mode={img_1bit.mode}")
                 
-                # Waveshare getbuffer handles the conversion
+                # Count black pixels to verify content
+                data = list(img_1bit.getdata())
+                black_pixels = sum(1 for p in data if p == 0)
+                logger.info(f"Black pixels: {black_pixels}/{len(data)}")
+                
                 buffer = self._epd.getbuffer(img_1bit)
                 self._epd.display(buffer)
                 logger.debug("Display updated")
             except Exception as e:
                 logger.error(f"Failed to update display: {e}")
         else:
-            # Mock: save image to file for testing
             import os
             timestamp = int(time.time())
             filename = f"/tmp/crypto-ink-mock-{timestamp}.png"
