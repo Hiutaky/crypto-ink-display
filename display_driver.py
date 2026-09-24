@@ -37,9 +37,10 @@ class EPDDisplay:
 
         if self._epd is not None:
             try:
-                # V2 requires update mode parameter
+                # V2 requires update mode parameter - match Waveshare example pattern
                 self._epd.init(self._epd.FULL_UPDATE)
-                logger.info("Display initialized")
+                self._epd.Clear(0xFF)  # Clear before first display (like reference example)
+                logger.info("Display initialized and cleared")
             except Exception as e:
                 logger.error(f"Failed to initialize display: {e}")
                 raise
@@ -64,23 +65,16 @@ class EPDDisplay:
 
     def update(self, image):
         """Update the display with a PIL Image."""
-        if not self._initialized:
-            self.init()
-
         if self._epd is not None:
             try:
                 # Convert to 1-bit for e-ink (0=black/ink, 255=white/paper)
                 img_1bit = image.convert('1')
-                
+
                 logger.info(f"Displaying image {img_1bit.size} mode={img_1bit.mode}")
-                
-                # Count black pixels to verify content is actually there
-                data = list(img_1bit.getdata())
-                black_pixels = sum(1 for p in data if p == 0)
-                logger.info(f"Black (ink) pixels: {black_pixels} out of {len(data)}")
-                
+
                 buffer = self._epd.getbuffer(img_1bit)
-                logger.info(f"Buffer size: {len(buffer)} bytes")
+                # Match Waveshare example: init(FULL_UPDATE) then display()
+                self._epd.init(self._epd.FULL_UPDATE)
                 self._epd.display(buffer)
                 time.sleep(0.5)  # Small delay after display
                 logger.debug("Display updated")
@@ -104,9 +98,20 @@ class EPDDisplay:
 
     def close(self):
         """Clean up and release resources."""
-        if self._initialized:
+        if self._epd is not None:
             try:
+                # Clear display before sleeping (like reference example)
+                self._epd.init(self._epd.FULL_UPDATE)
+                self._epd.Clear(0xFF)
+                logger.info("Display cleared")
+
                 self.sleep()
-            except Exception:
-                pass
-            self._initialized = False
+                logger.info("Display sleeping")
+
+                # Proper cleanup of GPIO and SPI resources
+                from waveshare_epd import epd2in13_V2
+                epd2in13_V2.epdconfig.module_exit(cleanup=True)
+                logger.info("Module exited cleanly")
+            except Exception as e:
+                logger.error(f"Failed to close display: {e}")
+        self._initialized = False

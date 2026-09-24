@@ -140,6 +140,7 @@ def render_full_display(
         PIL Image ready to send to e-ink display.
     """
     # Create as binary 1-bit (black=0/ink, white=255/paper) like Waveshare example
+    # Note: Waveshare library expects (height, width) order for image dimensions
     img = Image.new("1", (height, width), 255)
     draw = ImageDraw.Draw(img)
 
