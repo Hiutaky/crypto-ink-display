@@ -139,7 +139,7 @@ def render_full_display(
     Returns:
         PIL Image ready to send to e-ink display.
     """
-    img = Image.new("L", (width, height), 0)
+    img = Image.new("L", (height, width), 255)
     draw = ImageDraw.Draw(img)
 
     # Top section: price info

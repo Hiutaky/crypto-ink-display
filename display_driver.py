@@ -73,12 +73,12 @@ class EPDDisplay:
 
         if self._epd is not None:
             try:
-                # Convert to 1-bit image for e-ink
+                # Waveshare 2.13" V2 expects height=128, width=250
                 img_1bit = image.convert('1')
                 
                 logger.info(f"Displaying image {img_1bit.size} mode={img_1bit.mode}")
                 
-                # Waveshare V2 uses getbuffer to convert PIL Image
+                # Waveshare getbuffer handles the conversion
                 buffer = self._epd.getbuffer(img_1bit)
                 self._epd.display(buffer)
                 logger.debug("Display updated")
