@@ -139,8 +139,8 @@ def render_full_display(
     Returns:
         PIL Image ready to send to e-ink display.
     """
-    # Waveshare library expects (height, width) order - opposite of PIL!
-    img = Image.new("L", (height, width), 255)
+    # Create as binary 1-bit (black=0/ink, white=255/paper) like Waveshare example
+    img = Image.new("1", (height, width), 255)
     draw = ImageDraw.Draw(img)
 
     # Top section: price info
@@ -180,18 +180,32 @@ def render_full_display(
     # Separator line
     draw.line([(0, 30), (width, 30)], fill=0, width=1)
 
-    # Chart area: below separator
+    # Chart area: draw directly on the main image (all black-on-white like reference)
     chart_height = height - 40
-    chart_img = render_line_chart(
-        chart_data,
-        width=width - 10,
-        height=chart_height,
-        line_color=1,
-        bg_color=0,
-    )
-    img.paste(chart_img, (5, 35))
+    
+    if chart_data and len(chart_data) >= 2:
+        prices = [p for _, p in chart_data]
+        min_price = min(prices)
+        max_price = max(prices)
+        price_range = max_price - min_price
+        if price_range == 0:
+            price_range = 1.0
+        
+        padding = 2
+        chart_w = width - 2 * padding
+        chart_h = height - 45  # Leave room for label
+        
+        points = []
+        for i, (ts, price) in enumerate(chart_data):
+            x = int(padding + (i / (len(chart_data) - 1)) * chart_w)
+            y_norm = (price - min_price) / price_range
+            y = int(35 + chart_h - y_norm * chart_h)
+            points.append((x, y))
+        
+        for i in range(len(points) - 1):
+            draw.line([points[i], points[i+1]], fill=0, width=1)
 
-    # Chart label
-    draw.text((5, height - 12), "Last 15 min", fill=128, font=font_small)
+    # Chart label - use 0 for max contrast on binary display
+    draw.text((5, height - 12), "Last 15 min", fill=0, font=font_small)
 
     return img

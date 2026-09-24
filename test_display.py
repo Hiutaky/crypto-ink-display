@@ -110,7 +110,7 @@ def _method(epd, *names):
 # ---------------------------------------------------------------------------
 
 def page_all_white():
-    # Waveshare uses (height, width) order - unusual vs PIL's (width, height)!
+    # Waveshare uses (height, width) - opposite of PIL convention!
     return Image.new("1", (HEIGHT, WIDTH), 255)
 
 
@@ -129,7 +129,7 @@ def page_checker():
 
 
 def page_ok():
-    img = Image.new("L", (WIDTH, HEIGHT), 255)
+    img = Image.new("L", (HEIGHT, WIDTH), 255)
     d = ImageDraw.Draw(img)
     # thick border so orientation is obvious
     d.rectangle([0, 0, WIDTH - 1, HEIGHT - 1], outline=0, width=6)
