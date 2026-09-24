@@ -110,7 +110,7 @@ def _method(epd, *names):
 # ---------------------------------------------------------------------------
 
 def page_all_white():
-    # Waveshare library expects (height, width) order - unusual vs PIL
+    # Waveshare uses (height, width) order - unusual vs PIL's (width, height)!
     return Image.new("1", (HEIGHT, WIDTH), 255)
 
 
