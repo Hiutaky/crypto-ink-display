@@ -139,8 +139,8 @@ def render_full_display(
     Returns:
         PIL Image ready to send to e-ink display.
     """
-    # Create image with white background for e-ink (255 = paper/white)
-    img = Image.new("L", (width, height), 255)
+    # Waveshare library expects (height, width) order - opposite of PIL!
+    img = Image.new("L", (height, width), 255)
     draw = ImageDraw.Draw(img)
 
     # Top section: price info

@@ -110,15 +110,16 @@ def _method(epd, *names):
 # ---------------------------------------------------------------------------
 
 def page_all_white():
-    return Image.new("1", (WIDTH, HEIGHT), 255)  # 255 = white/paper in mode '1'
+    # Waveshare library expects (height, width) order - unusual vs PIL
+    return Image.new("1", (HEIGHT, WIDTH), 255)
 
 
 def page_all_black():
-    return Image.new("1", (WIDTH, HEIGHT), 0)    # 0 = black/ink
+    return Image.new("1", (HEIGHT, WIDTH), 0)
 
 
 def page_checker():
-    img = Image.new("L", (WIDTH, HEIGHT), 255)
+    img = Image.new("L", (HEIGHT, WIDTH), 255)
     d = ImageDraw.Draw(img)
     for y in range(0, HEIGHT, 4):
         for x in range(0, WIDTH, 4):
